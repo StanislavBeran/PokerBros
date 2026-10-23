@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<?import javafx.scene.control.Button?>
+<AnchorPane prefHeight="740.0" prefWidth="1280.0" style="-fx-background-color: #2b2b2b;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.pokerbros.PokerController">
+    <children>
+        <!-- Tlačítko pro návrat do menu -->
+        <Button layoutX="20.0" layoutY="20.0" mnemonicParsing="false" onAction="#returnToMenu" prefHeight="40.0" prefWidth="100.0" style="-fx-background-color: #c23616; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 10; -fx-cursor: hand;" text="MENU" />
+        <ImageView fitHeight="700.0" fitWidth="1100.0" layoutX="90.0" layoutY="20.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@pokertable.png" />
+            </image>
+        </ImageView>
+
+        <HBox alignment="CENTER" layoutX="320.0" layoutY="310.0" prefHeight="120.0" prefWidth="640.0" spacing="15.0">
+            <children>
+
+                <ImageView fx:id="deckImage" fitHeight="120.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@pack_of_cards.png" />
+                    </image>
+                    <HBox.margin>
+                        <Insets right="30.0" />
+                    </HBox.margin>
+                </ImageView>
+
+                <ImageView fx:id="flopCard1" fitHeight="120.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" />
+                <ImageView fx:id="flopCard2" fitHeight="120.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" />
+                <ImageView fx:id="flopCard3" fitHeight="120.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" />
+                <ImageView fx:id="turnCard" fitHeight="120.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" />
+                <ImageView fx:id="riverCard" fitHeight="120.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" />
+            </children>
+        </HBox>
+
+        <!-- HRÁČ 1 -->
+        <VBox fx:id="player1Box" alignment="CENTER" layoutX="575.0" layoutY="550.0" prefHeight="130.0" prefWidth="130.0" spacing="5.0" visible="false">
+            <children>
+                <Label fx:id="player1Status" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8;" text="Waiting..." textFill="WHITE">
+                    <font><Font name="System Bold" size="14.0" /></font>
+                </Label>
+                <Pane prefHeight="100.0" prefWidth="130.0">
+                    <children>
+                        <ImageView fx:id="p1Card1" fitHeight="100.0" fitWidth="70.0" layoutX="15.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" rotate="-15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                        <ImageView fx:id="p1Card2" fitHeight="100.0" fitWidth="70.0" layoutX="45.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" rotate="15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                    </children>
+                </Pane>
+            </children>
+        </VBox>
+
+        <!-- HRÁČ 2 -->
+        <VBox fx:id="player2Box" alignment="CENTER" layoutX="150.0" layoutY="450.0" prefHeight="130.0" prefWidth="130.0" spacing="5.0" visible="false">
+            <children>
+                <Label fx:id="player2Status" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8;" text="Waiting..." textFill="WHITE">
+                    <font><Font name="System Bold" size="14.0" /></font>
+                </Label>
+                <Pane prefHeight="100.0" prefWidth="130.0">
+                    <children>
+                        <ImageView fx:id="p2Card1" fitHeight="100.0" fitWidth="70.0" layoutX="15.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" rotate="-15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                        <ImageView fx:id="p2Card2" fitHeight="100.0" fitWidth="70.0" layoutX="45.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" rotate="15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                    </children>
+                </Pane>
+            </children>
+        </VBox>
+
+        <!-- HRÁČ 3 -->
+        <VBox fx:id="player3Box" alignment="CENTER" layoutX="250.0" layoutY="70.0" prefHeight="130.0" prefWidth="130.0" spacing="5.0" visible="false">
+            <children>
+                <Label fx:id="player3Status" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8;" text="Waiting..." textFill="WHITE">
+                    <font><Font name="System Bold" size="14.0" /></font>
+                </Label>
+                <Pane prefHeight="100.0" prefWidth="130.0">
+                    <children>
+                        <ImageView fx:id="p3Card1" fitHeight="100.0" fitWidth="70.0" layoutX="15.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" rotate="-15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                        <ImageView fx:id="p3Card2" fitHeight="100.0" fitWidth="70.0" layoutX="45.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" rotate="15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                    </children>
+                </Pane>
+            </children>
+        </VBox>
+
+        <!-- HRÁČ 4 -->
+        <VBox fx:id="player4Box" alignment="CENTER" layoutX="575.0" layoutY="20.0" prefHeight="130.0" prefWidth="130.0" spacing="5.0" visible="false">
+            <children>
+                <Label fx:id="player4Status" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8;" text="Waiting..." textFill="WHITE">
+                    <font><Font name="System Bold" size="14.0" /></font>
+                </Label>
+                <Pane prefHeight="100.0" prefWidth="130.0">
+                    <children>
+                        <ImageView fx:id="p4Card1" fitHeight="100.0" fitWidth="70.0" layoutX="15.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" rotate="-15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                        <ImageView fx:id="p4Card2" fitHeight="100.0" fitWidth="70.0" layoutX="45.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" rotate="15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                    </children>
+                </Pane>
+            </children>
+        </VBox>
+
+        <!-- HRÁČ 5 -->
+        <VBox fx:id="player5Box" alignment="CENTER" layoutX="900.0" layoutY="70.0" prefHeight="130.0" prefWidth="130.0" spacing="5.0" visible="false">
+            <children>
+                <Label fx:id="player5Status" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8;" text="Waiting..." textFill="WHITE">
+                    <font><Font name="System Bold" size="14.0" /></font>
+                </Label>
+                <Pane prefHeight="100.0" prefWidth="130.0">
+                    <children>
+                        <ImageView fx:id="p5Card1" fitHeight="100.0" fitWidth="70.0" layoutX="15.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" rotate="-15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                        <ImageView fx:id="p5Card2" fitHeight="100.0" fitWidth="70.0" layoutX="45.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" rotate="15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                    </children>
+                </Pane>
+            </children>
+        </VBox>
+
+        <!-- HRÁČ 6 -->
+        <VBox fx:id="player6Box" alignment="CENTER" layoutX="1000.0" layoutY="450.0" prefHeight="130.0" prefWidth="130.0" spacing="5.0" visible="false">
+            <children>
+                <Label fx:id="player6Status" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8;" text="Waiting..." textFill="WHITE">
+                    <font><Font name="System Bold" size="14.0" /></font>
+                </Label>
+                <Pane prefHeight="100.0" prefWidth="130.0">
+                    <children>
+                        <ImageView fx:id="p6Card1" fitHeight="100.0" fitWidth="70.0" layoutX="15.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" rotate="-15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                        <ImageView fx:id="p6Card2" fitHeight="100.0" fitWidth="70.0" layoutX="45.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" rotate="15.0"><image><Image url="@pack_of_cards.png" /></image></ImageView>
+                    </children>
+                </Pane>
+            </children>
+        </VBox>
+        <Label fx:id="turnLabel" alignment="CENTER" layoutX="440.0" layoutY="30.0" prefWidth="400.0" style="-fx-background-color: rgba(0,0,0,0.5); -fx-background-radius: 10; -fx-padding: 10;" text="Na řadě je: Hráč 1" textFill="#e1b12c">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
+        </Label>
+
+        <!-- Ovládací panel pro Hráče 1 (Dole nad kartami) -->
+        <HBox fx:id="actionPanel" alignment="CENTER" layoutX="490.0" layoutY="480.0" prefHeight="50.0" prefWidth="300.0" spacing="15.0" visible="false">
+            <children>
+                <Button mnemonicParsing="false" onAction="#handleFold" prefWidth="90.0" style="-fx-background-color: #c23616; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="FOLD" />
+                <Button mnemonicParsing="false" onAction="#handleCheck" prefWidth="90.0" style="-fx-background-color: #fbc531; -fx-text-fill: black; -fx-font-weight: bold; -fx-cursor: hand;" text="CHECK/CALL" />
+                <Button mnemonicParsing="false" onAction="#handleRaise" prefWidth="90.0" style="-fx-background-color: #44bd32; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="RAISE" />
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>
