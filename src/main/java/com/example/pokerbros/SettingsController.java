@@ -24,7 +24,7 @@ public class SettingsController {
     @FXML
     public void initialize() {
         playerSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            playersLabel.setText("Počet hráčů: " + newValue.intValue());
+            playersLabel.setText("Number of players: " + newValue.intValue());
         });
     }
 
@@ -35,7 +35,7 @@ public class SettingsController {
             System.out.println("Nastavení úspěšně uloženo.");
             goBackToMenu(event);
         } catch (IOException e) {
-            System.out.println("Chyba při ukládání do souboru.");
+            System.out.println("Error while saving settings.");
             e.printStackTrace();
         }
     }

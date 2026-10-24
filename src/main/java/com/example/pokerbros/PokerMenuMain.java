@@ -10,7 +10,7 @@ public class PokerMenuMain extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("PokerMenuView.fxml"));
         Scene scene = new Scene(loader.load(), 1280, 740);
-        stage.setTitle("Hello!");
+        stage.setTitle("Poker Bros");
         stage.setScene(scene);
         stage.show();
     }

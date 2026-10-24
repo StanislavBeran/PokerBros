@@ -12,13 +12,13 @@
     <children>
         <VBox alignment="CENTER" layoutX="440.0" layoutY="170.0" prefHeight="400.0" prefWidth="400.0" spacing="30.0" style="-fx-background-color: #353b48; -fx-background-radius: 15; -fx-padding: 30;">
             <children>
-                <Label text="NASTAVENÍ" textFill="#e1b12c">
+                <Label text="SETTINGS" textFill="#e1b12c">
                     <font>
                         <Font name="System Bold" size="36.0" />
                     </font>
                 </Label>
 
-                <Label fx:id="playersLabel" text="Počet hráčů: 3" textFill="WHITE">
+                <Label fx:id="playersLabel" text="Number of players: 3" textFill="WHITE">
                     <font>
                         <Font size="18.0" />
                     </font>
