@@ -3,6 +3,8 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Slider?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -10,21 +12,28 @@
 
 <AnchorPane prefHeight="740.0" prefWidth="1280.0" style="-fx-background-color: #2b2b2b;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.pokerbros.SettingsController">
     <children>
-        <VBox alignment="CENTER" layoutX="440.0" layoutY="170.0" prefHeight="400.0" prefWidth="400.0" spacing="30.0" style="-fx-background-color: #353b48; -fx-background-radius: 15; -fx-padding: 30;">
+        <ImageView fitHeight="740.0" fitWidth="1280.0" pickOnBounds="true" preserveRatio="false">
+            <image><Image url="@pokerMenu_background.png" /></image>
+        </ImageView>
+        <VBox alignment="CENTER" layoutX="440.0" layoutY="120.0" prefHeight="500.0" prefWidth="400.0" spacing="30.0" style="-fx-background-color: #353b48; -fx-background-radius: 15; -fx-padding: 30;">
             <children>
-                <Label text="SETTINGS" textFill="#e1b12c">
+                <Label text="NASTAVENÍ" textFill="#e1b12c">
                     <font>
                         <Font name="System Bold" size="36.0" />
                     </font>
                 </Label>
 
-                <Label fx:id="playersLabel" text="Number of players: 3" textFill="WHITE">
-                    <font>
-                        <Font size="18.0" />
-                    </font>
+                <!-- Nastavení hráčů -->
+                <Label fx:id="playersLabel" text="Počet hráčů: 2" textFill="WHITE">
+                    <font><Font size="18.0" /></font>
                 </Label>
+                <Slider fx:id="playerSlider" blockIncrement="1.0" majorTickUnit="1.0" max="6.0" min="2.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="2.0" />
 
-                <Slider fx:id="playerSlider" blockIncrement="1.0" majorTickUnit="1.0" max="6.0" min="2.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="3.0" />
+                <!-- NOVÉ: Nastavení peněz -->
+                <Label fx:id="moneyLabel" text="Startovní peníze: $5000" textFill="WHITE">
+                    <font><Font size="18.0" /></font>
+                </Label>
+                <Slider fx:id="moneySlider" blockIncrement="500.0" majorTickUnit="1000.0" max="20000.0" min="1000.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="5000.0" />
 
                 <HBox alignment="CENTER" spacing="20.0">
                     <children>

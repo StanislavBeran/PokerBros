@@ -15,27 +15,31 @@ import java.io.IOException;
 
 public class SettingsController {
 
-    @FXML
-    private Slider playerSlider;
-
-    @FXML
-    private Label playersLabel;
+    @FXML private Slider playerSlider;
+    @FXML private Label playersLabel;
+    @FXML private Slider moneySlider;
+    @FXML private Label moneyLabel;
 
     @FXML
     public void initialize() {
         playerSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            playersLabel.setText("Number of players: " + newValue.intValue());
+            playersLabel.setText("Počet hráčů: " + newValue.intValue());
+        });
+
+        moneySlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            moneyLabel.setText("Startovní peníze: $" + newValue.intValue());
         });
     }
 
     public void saveSettings(ActionEvent event) {
         int pocetHracu = (int) playerSlider.getValue();
+        int penize = (int) moneySlider.getValue();
+
         try (FileWriter writer = new FileWriter("settings.txt")) {
-            writer.write("numberOfPlayers:" + pocetHracu);
-            System.out.println("Nastavení úspěšně uloženo.");
+            writer.write("numberOfPlayers:" + pocetHracu + "\n");
+            writer.write("startingMoney:" + penize + "\n");
             goBackToMenu(event);
         } catch (IOException e) {
-            System.out.println("Error while saving settings.");
             e.printStackTrace();
         }
     }

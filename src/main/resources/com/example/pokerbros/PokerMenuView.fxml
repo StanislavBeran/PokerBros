@@ -3,12 +3,17 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #2b2b2b;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.pokerbros.PokerMenuController">
+<StackPane prefHeight="740.0" prefWidth="1280.0" style="-fx-background-color: #2b2b2b;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.pokerbros.PokerMenuController">
     <children>
+        <ImageView fitHeight="740.0" fitWidth="1280.0" pickOnBounds="true" preserveRatio="false">
+            <image><Image url="@pokerMenu_background.png" /></image>
+        </ImageView>
         <VBox alignment="CENTER" maxWidth="350.0" spacing="15.0">
             <children>
                 <Label text="POKER" textFill="#e1b12c">

@@ -34,16 +34,30 @@ public class PokerController {
     @FXML private ImageView p4Card1, p4Card2, p5Card1, p5Card2, p6Card1, p6Card2;
     @FXML private Label player1Status, player2Status, player3Status, player4Status, player5Status, player6Status;
 
-    @FXML private ImageView deckImage; // Zdroj pro rozdávání karet
-    @FXML private ImageView flopCard1, flopCard2, flopCard3, turnCard, riverCard;
-    @FXML private Label turnLabel;
-    @FXML private Label player1HandLabel;
+    @FXML private HBox p1Tokens, p2Tokens, p3Tokens, p4Tokens, p5Tokens, p6Tokens;
+    @FXML private Label p1BetLabel, p2BetLabel, p3BetLabel, p4BetLabel, p5BetLabel, p6BetLabel;
+    @FXML private Label myBalanceLabel, potLabel;
+
+    @FXML private ImageView deckImage, flopCard1, flopCard2, flopCard3, turnCard, riverCard;
+    @FXML private Label turnLabel, player1HandLabel;
     @FXML private HBox actionPanel;
     @FXML private javafx.scene.layout.StackPane combinationsOverlay;
+    @FXML private HBox potTokens;
+
+    @FXML private VBox raisePanel;
+    @FXML private Label customRaiseLabel;
+    @FXML private ImageView rToken1, rToken5, rToken10, rToken25, rToken50, rToken100, rToken200, rToken500, rToken1000;
+    private int customRaiseAmount = 0;
 
     private int numberOfPlayers = 2;
-    private List<String> deck;
+    private int startingMoney = 5000;
+    private int[] playerBalances = new int[6];
+    private int[] playerBets = new int[6];
+    private int pot = 0;
+    private int currentHighestBet = 0;
+    private int dealerIndex = -1;
 
+    private List<String> deck;
     private enum GamePhase { PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN }
     private GamePhase currentPhase;
     private int currentPlayerTurn = 0;
@@ -51,18 +65,45 @@ public class PokerController {
     private boolean[] inGame;
     private String[][] playerCards = new String[6][2];
     private List<String> communityCards;
+    private boolean isGameOver = false;
 
     @FXML
     public void initialize() {
         loadSettings();
+        for (int i = 0; i < 6; i++) playerBalances[i] = startingMoney;
+        updateBalanceUI();
         setupTable();
-        // Malé zpoždění před první hrou, aby se scéna stihla plně vykreslit pro výpočet souřadnic
-        javafx.application.Platform.runLater(this::startNewRound);
+
+        setupRaiseToken(rToken1, 1);
+        setupRaiseToken(rToken5, 5);
+        setupRaiseToken(rToken10, 10);
+        setupRaiseToken(rToken25, 25);
+        setupRaiseToken(rToken50, 50);
+        setupRaiseToken(rToken100, 100);
+        setupRaiseToken(rToken200, 200);
+        setupRaiseToken(rToken500, 500);
+        setupRaiseToken(rToken1000, 1000);
+
+        javafx.application.Platform.runLater(() -> {
+            startNewRound();
+            turnLabel.getScene().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    try { returnToMenu(new ActionEvent()); } catch (IOException e) {}
+                } else if (event.getCode() == KeyCode.SPACE) {
+                    event.consume();
+                    if (isGameOver) startNewRound();
+                }
+            });
+        });
     }
 
     private void startNewRound() {
+        isGameOver = false;
         createAndShuffleDeck();
         communityCards = new ArrayList<>();
+        pot = 0;
+        updatePotUI();
+        clearBetsAndTokens();
 
         Image backImage = new Image(getClass().getResource("pack_of_cards.png").toExternalForm());
         ImageView[] tableCards = {flopCard1, flopCard2, flopCard3, turnCard, riverCard};
@@ -70,16 +111,13 @@ public class PokerController {
             tv.setImage(backImage);
             tv.setEffect(null);
             tv.setOpacity(1.0);
-            tv.setVisible(false); // Skryjeme před rozdáním
+            tv.setVisible(false);
         }
 
         inGame = new boolean[6];
         for (int i = 0; i < numberOfPlayers; i++) {
             inGame[i] = true;
-            Label status = getStatusLabel(i);
-            status.setText("Waiting...");
-            status.setStyle("-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8;");
-
+            setStatus(i, "Waiting...", "#ffffff");
             getCardImageView(i, 1).setEffect(null);
             getCardImageView(i, 2).setEffect(null);
             getCardImageView(i, 1).setOpacity(1.0);
@@ -89,21 +127,214 @@ public class PokerController {
         }
 
         if (player1HandLabel != null) player1HandLabel.setVisible(false);
+        if (raisePanel != null) raisePanel.setVisible(false);
+
         currentPhase = GamePhase.PRE_FLOP;
         playersActedThisPhase = 0;
-        currentPlayerTurn = 0;
+
+        dealerIndex = (dealerIndex + 1) % numberOfPlayers;
+        int sbIndex = (dealerIndex + 1) % numberOfPlayers;
+        int bbIndex = (dealerIndex + 2) % numberOfPlayers;
+        currentPlayerTurn = (dealerIndex + 3) % numberOfPlayers;
+
+        currentHighestBet = 0;
+        placeBet(sbIndex, 25);
+        placeBet(bbIndex, 50);
+        currentHighestBet = 50;
 
         dealCards();
     }
 
-    // --- ANIMAČNÍ METODY ---
+    // --- ANIMACE PANELU RAISE ZPRAVA ---
+    private void showRaisePanel() {
+        raisePanel.setTranslateX(400); // Nastartuje posunutý vpravo mimo obrazovku
+        raisePanel.setVisible(true);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(250), raisePanel);
+        tt.setToX(0); // Plynule dojede na svou X=800 pozici
+        tt.play();
+        customRaiseAmount = 0;
+        updateRaiseUI();
+    }
+
+    private void hideRaisePanel() {
+        if (!raisePanel.isVisible()) return;
+        TranslateTransition tt = new TranslateTransition(Duration.millis(250), raisePanel);
+        tt.setToX(400); // Odjede zpět vpravo
+        tt.setOnFinished(e -> raisePanel.setVisible(false));
+        tt.play();
+    }
+    // -----------------------------------
+
+    private void setupRaiseToken(ImageView iv, int val) {
+        if (iv == null) return;
+        iv.setOnMouseClicked(e -> {
+            if (playerBalances[0] >= customRaiseAmount + val) {
+                customRaiseAmount += val;
+                updateRaiseUI();
+            }
+        });
+    }
+
+    private void updateRaiseUI() {
+        customRaiseLabel.setText("$" + customRaiseAmount);
+        customRaiseLabel.setTextFill(javafx.scene.paint.Color.web("#fbc531")); // Reset barvy zpět na žlutou, pokud byla varovně červená
+
+        ImageView[] rTokens = {rToken1, rToken5, rToken10, rToken25, rToken50, rToken100, rToken200, rToken500, rToken1000};
+        int[] rVals = {1, 5, 10, 25, 50, 100, 200, 500, 1000};
+
+        for (int i = 0; i < rTokens.length; i++) {
+            if (rTokens[i] != null) {
+                if (playerBalances[0] >= customRaiseAmount + rVals[i]) {
+                    rTokens[i].setOpacity(1.0);
+                } else {
+                    rTokens[i].setOpacity(0.3);
+                }
+            }
+        }
+    }
+
+    @FXML
+    public void resetCustomRaise(ActionEvent event) {
+        customRaiseAmount = 0;
+        updateRaiseUI();
+    }
+
+    @FXML
+    public void confirmCustomRaise(ActionEvent event) {
+        if (customRaiseAmount == 0) return;
+
+
+        int callAmount = currentHighestBet - playerBets[0];
+
+        if (customRaiseAmount <= callAmount) {
+            customRaiseLabel.setText("Min: $" + (callAmount + 1));
+            customRaiseLabel.setTextFill(javafx.scene.paint.Color.RED);
+            return;
+        }
+
+        currentHighestBet = playerBets[0] + customRaiseAmount;
+        placeBet(0, customRaiseAmount);
+
+        setStatus(0, "Raise $" + customRaiseAmount, "#4cd137");
+        actionPanel.setVisible(false);
+        hideRaisePanel();
+        nextTurn();
+    }
+
+    @FXML
+    public void handleRaise(ActionEvent event) {
+        if (raisePanel.isVisible() && raisePanel.getTranslateX() == 0) {
+            hideRaisePanel(); // Když už je zobrazený a docestoval, tak ho schová
+        } else if (!raisePanel.isVisible()) {
+            showRaisePanel();
+        }
+    }
+
+    @FXML
+    public void handleFold(ActionEvent event) {
+        setStatus(0, "Fold", "#e84118");
+        actionPanel.setVisible(false);
+        hideRaisePanel();
+        inGame[0] = false;
+        nextTurn();
+    }
+
+    @FXML
+    public void handleCheck(ActionEvent event) {
+        int callAmount = currentHighestBet - playerBets[0];
+        if (callAmount > 0) {
+            placeBet(0, callAmount);
+            setStatus(0, "Call $" + callAmount, "#ffffff");
+        } else {
+            setStatus(0, "Check", "#ffffff");
+        }
+        actionPanel.setVisible(false);
+        hideRaisePanel();
+        nextTurn();
+    }
+
+    private void placeBet(int playerId, int amountToAdd) {
+        int bet = Math.min(amountToAdd, playerBalances[playerId]);
+        playerBalances[playerId] -= bet;
+        playerBets[playerId] += bet;
+        pot += bet;
+
+        updateBalanceUI();
+        updatePotUI();
+        updateTokenVisuals(playerId, playerBets[playerId]);
+    }
+
+    private void clearBetsAndTokens() {
+        for (int i = 0; i < 6; i++) {
+            playerBets[i] = 0;
+            updateTokenVisuals(i, 0);
+        }
+    }
+
+    private void updateBalanceUI() {
+        if (myBalanceLabel != null) myBalanceLabel.setText("$" + playerBalances[0]);
+    }
+
+    private void updatePotUI() {
+        if (potLabel != null) potLabel.setText("POT: $" + pot);
+
+        if (potTokens != null) {
+            potTokens.getChildren().clear();
+            if (pot == 0) return;
+
+            int[] values = {1000, 500, 200, 100, 50, 25, 10, 5, 1};
+            int temp = pot;
+            for (int v : values) {
+                while (temp >= v) {
+                    try {
+                        ImageView chip = new ImageView(new Image(getClass().getResource("tokens/" + v + ".png").toExternalForm()));
+                        chip.setFitWidth(25); chip.setFitHeight(25);
+                        potTokens.getChildren().add(chip);
+                    } catch (Exception e) {}
+                    temp -= v;
+                }
+            }
+        }
+    }
+
+    private void updateTokenVisuals(int playerId, int amount) {
+        HBox[] tokenBoxes = {p1Tokens, p2Tokens, p3Tokens, p4Tokens, p5Tokens, p6Tokens};
+        Label[] betLabels = {p1BetLabel, p2BetLabel, p3BetLabel, p4BetLabel, p5BetLabel, p6BetLabel};
+
+        if (tokenBoxes[playerId] == null) return;
+        HBox container = tokenBoxes[playerId];
+        container.getChildren().clear();
+        if (betLabels[playerId] != null) betLabels[playerId].setText(amount > 0 ? "$" + amount : "");
+
+        if (amount == 0) return;
+
+        int[] values = {1000, 500, 200, 100, 50, 25, 10, 5, 1};
+        int temp = amount;
+        for (int v : values) {
+            while (temp >= v) {
+                try {
+                    ImageView chip = new ImageView(new Image(getClass().getResource("tokens/" + v + ".png").toExternalForm()));
+                    chip.setFitWidth(25); chip.setFitHeight(25);
+                    container.getChildren().add(chip);
+                } catch (Exception e) {}
+                temp -= v;
+            }
+        }
+    }
+
+    private void setStatus(int playerId, String text, String colorHex) {
+        Label status = getStatusLabel(playerId);
+        if (status != null) {
+            status.setText(text);
+            status.setStyle("-fx-background-color: rgba(0,0,0,0.6); -fx-background-radius: 5; -fx-padding: 3 8 3 8; -fx-text-fill: " + colorHex + ";");
+        }
+    }
 
     private void animateCardDeal(ImageView targetCard, Image finalImage, int delayMillis, boolean flipAtEnd) {
         targetCard.setVisible(true);
         Image backImage = new Image(getClass().getResource("cards/cardsbackground.png").toExternalForm());
         targetCard.setImage(backImage);
 
-        // Výpočet rozdílu souřadnic mezi balíčkem a cílovou kartou
         double startX = deckImage.localToScene(deckImage.getBoundsInLocal()).getMinX();
         double startY = deckImage.localToScene(deckImage.getBoundsInLocal()).getMinY();
         double endX = targetCard.localToScene(targetCard.getBoundsInLocal()).getMinX();
@@ -113,20 +344,16 @@ public class PokerController {
         targetCard.setTranslateY(startY - endY);
 
         TranslateTransition translate = new TranslateTransition(Duration.millis(500), targetCard);
-        translate.setToX(0);
-        translate.setToY(0);
+        translate.setToX(0); translate.setToY(0);
 
         RotateTransition rotate = new RotateTransition(Duration.millis(500), targetCard);
-        rotate.setFromAngle(0);
-        rotate.setByAngle(360);
+        rotate.setFromAngle(0); rotate.setByAngle(360);
 
         ParallelTransition anim = new ParallelTransition(translate, rotate);
         anim.setDelay(Duration.millis(delayMillis));
 
         anim.setOnFinished(e -> {
-            if (flipAtEnd) {
-                animateCardFlip(targetCard, finalImage);
-            }
+            if (flipAtEnd) animateCardFlip(targetCard, finalImage);
         });
         anim.play();
     }
@@ -143,8 +370,6 @@ public class PokerController {
         shrink.play();
     }
 
-    // -----------------------
-
     private void dealCards() {
         int delay = 0;
         for (int i = 0; i < numberOfPlayers; i++) {
@@ -156,13 +381,11 @@ public class PokerController {
             Image img1 = new Image(getClass().getResource("cards/" + card1 + ".png").toExternalForm());
             Image img2 = new Image(getClass().getResource("cards/" + card2 + ".png").toExternalForm());
 
-            // Hráč 1 (Vy) - karty se otočí lícem nahoru
             if (i == 0) {
                 animateCardDeal(getCardImageView(0, 1), img1, delay, true);
                 delay += 200;
                 animateCardDeal(getCardImageView(0, 2), img2, delay, true);
             } else {
-                // Roboti - karty zůstanou rubem nahoru
                 animateCardDeal(getCardImageView(i, 1), null, delay, false);
                 delay += 200;
                 animateCardDeal(getCardImageView(i, 2), null, delay, false);
@@ -182,29 +405,24 @@ public class PokerController {
         playersActedThisPhase = 0;
         currentPlayerTurn = getFirstActivePlayer();
 
+        clearBetsAndTokens();
+        currentHighestBet = 0;
+
         switch (currentPhase) {
             case PRE_FLOP:
                 currentPhase = GamePhase.FLOP;
-                revealCommunityCard(flopCard1, 0);
-                revealCommunityCard(flopCard2, 300);
-                revealCommunityCard(flopCard3, 600);
+                revealCommunityCard(flopCard1, 0); revealCommunityCard(flopCard2, 300); revealCommunityCard(flopCard3, 600);
                 break;
             case FLOP:
-                currentPhase = GamePhase.TURN;
-                revealCommunityCard(turnCard, 0);
-                break;
+                currentPhase = GamePhase.TURN; revealCommunityCard(turnCard, 0); break;
             case TURN:
-                currentPhase = GamePhase.RIVER;
-                revealCommunityCard(riverCard, 0);
-                break;
+                currentPhase = GamePhase.RIVER; revealCommunityCard(riverCard, 0); break;
             case RIVER:
-                currentPhase = GamePhase.SHOWDOWN;
-                showdown();
-                return;
+                currentPhase = GamePhase.SHOWDOWN; showdown(); return;
         }
 
         for (int i = 0; i < numberOfPlayers; i++) {
-            if (inGame[i]) getStatusLabel(i).setText("Waiting...");
+            if (inGame[i]) setStatus(i, "Waiting...", "#ffffff");
         }
 
         if (currentPhase != GamePhase.SHOWDOWN) {
@@ -226,7 +444,9 @@ public class PokerController {
 
     private void showdown() {
         actionPanel.setVisible(false);
+        hideRaisePanel();
         List<HandEvaluator.Result> results = new ArrayList<>();
+        clearBetsAndTokens();
 
         for (int i = 0; i < numberOfPlayers; i++) {
             if (inGame[i]) {
@@ -244,73 +464,61 @@ public class PokerController {
             }
         }
 
-        // Zpoždění pro dokončení animací otočení karet
         PauseTransition evalPause = new PauseTransition(Duration.millis(800));
         evalPause.setOnFinished(e -> evaluateWinner(results));
         evalPause.play();
     }
 
     private void evaluateWinner(List<HandEvaluator.Result> results) {
-        if (results.size() == 1) {
-            turnLabel.setText("Everyone folded! Winner is Player " + (results.get(0).playerId + 1) + " | Press SPACE for next game");
-        } else {
-            results.sort(Collections.reverseOrder());
-            HandEvaluator.Result winner = results.get(0);
+        HandEvaluator.Result winner = (results.size() == 1) ? results.get(0) : Collections.max(results);
 
-            turnLabel.setText("WINNER: Player " + (winner.playerId + 1) + " !!! | Press SPACE for next game");
+        playerBalances[winner.playerId] += pot;
+        updateBalanceUI();
+        pot = 0;
+        updatePotUI();
 
-            javafx.scene.effect.DropShadow goldGlow = new javafx.scene.effect.DropShadow(25, javafx.scene.paint.Color.GOLD);
-            goldGlow.setSpread(0.5);
+        turnLabel.setText("WINNER: Player " + (winner.playerId + 1) + " | Press SPACE for next game");
 
-            flopCard1.setOpacity(0.5); flopCard2.setOpacity(0.5); flopCard3.setOpacity(0.5);
-            turnCard.setOpacity(0.5); riverCard.setOpacity(0.5);
+        javafx.scene.effect.DropShadow goldGlow = new javafx.scene.effect.DropShadow(25, javafx.scene.paint.Color.GOLD);
+        goldGlow.setSpread(0.5);
 
-            for (HandEvaluator.Result res : results) {
-                Label status = getStatusLabel(res.playerId);
-                if (res.playerId == winner.playerId) {
-                    status.setStyle("-fx-background-color: #44bd32; -fx-text-fill: white; -fx-padding: 3 8 3 8; -fx-background-radius: 5;");
-                    status.setText("WINNER: " + res.handName.toUpperCase());
+        flopCard1.setOpacity(0.5); flopCard2.setOpacity(0.5); flopCard3.setOpacity(0.5);
+        turnCard.setOpacity(0.5); riverCard.setOpacity(0.5);
 
-                    getCardImageView(res.playerId, 1).setOpacity(0.5);
-                    getCardImageView(res.playerId, 2).setOpacity(0.5);
+        for (HandEvaluator.Result res : results) {
+            if (res.playerId == winner.playerId) {
+                setStatus(res.playerId, "WINNER: " + res.handName.toUpperCase(), "#00a8ff");
 
-                    for (String winningCardName : res.bestCards) {
-                        if (winningCardName.equals(playerCards[res.playerId][0])) {
-                            getCardImageView(res.playerId, 1).setEffect(goldGlow);
-                            getCardImageView(res.playerId, 1).setOpacity(1.0);
-                        } else if (winningCardName.equals(playerCards[res.playerId][1])) {
-                            getCardImageView(res.playerId, 2).setEffect(goldGlow);
-                            getCardImageView(res.playerId, 2).setOpacity(1.0);
-                        } else {
-                            ImageView tableImg = getCommunityCardImageView(winningCardName);
-                            if (tableImg != null) {
-                                tableImg.setEffect(goldGlow);
-                                tableImg.setOpacity(1.0);
-                            }
+                getCardImageView(res.playerId, 1).setOpacity(0.5);
+                getCardImageView(res.playerId, 2).setOpacity(0.5);
+
+                for (String winningCardName : res.bestCards) {
+                    if (winningCardName.equals(playerCards[res.playerId][0])) {
+                        getCardImageView(res.playerId, 1).setEffect(goldGlow);
+                        getCardImageView(res.playerId, 1).setOpacity(1.0);
+                    } else if (winningCardName.equals(playerCards[res.playerId][1])) {
+                        getCardImageView(res.playerId, 2).setEffect(goldGlow);
+                        getCardImageView(res.playerId, 2).setOpacity(1.0);
+                    } else {
+                        ImageView tableImg = getCommunityCardImageView(winningCardName);
+                        if (tableImg != null) {
+                            tableImg.setEffect(goldGlow);
+                            tableImg.setOpacity(1.0);
                         }
                     }
-                } else {
-                    status.setText("Lost");
-                    getCardImageView(res.playerId, 1).setOpacity(0.5);
-                    getCardImageView(res.playerId, 2).setOpacity(0.5);
                 }
+            } else {
+                setStatus(res.playerId, "Lost", "#7f8fa6");
+                getCardImageView(res.playerId, 1).setOpacity(0.5);
+                getCardImageView(res.playerId, 2).setOpacity(0.5);
             }
         }
-
-        // Nastavení čekání na mezerník místo automatického restartu
-        turnLabel.getScene().setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.SPACE) {
-                turnLabel.getScene().setOnKeyPressed(null); // Odstranění listeneru
-                startNewRound();
-            }
-        });
+        isGameOver = true;
     }
 
     private void updatePlayer1Hand() {
         if (!inGame[0]) return;
-
         HandEvaluator.Result result = HandEvaluator.evaluatePlayer(0, playerCards[0][0], playerCards[0][1], communityCards);
-
         if (player1HandLabel != null) {
             player1HandLabel.setText(result.handName.toUpperCase());
             player1HandLabel.setVisible(true);
@@ -350,7 +558,7 @@ public class PokerController {
 
         if (currentPlayerTurn == 0) {
             actionPanel.setVisible(true);
-            player1Status.setText("Your turn");
+            setStatus(0, "Your turn", "#ffffff");
         } else {
             actionPanel.setVisible(false);
             playRobotTurn();
@@ -363,61 +571,30 @@ public class PokerController {
             nextPhase();
             return;
         }
-
         do {
             currentPlayerTurn = (currentPlayerTurn + 1) % numberOfPlayers;
         } while (!inGame[currentPlayerTurn]);
-
         updateTurn();
     }
 
-    // --- ZBYLÉ METODY ---
-
-    private ImageView getCardImageView(int playerIndex, int cardIndex) {
-        ImageView[][] allCards = {
-                {p1Card1, p1Card2}, {p2Card1, p2Card2}, {p3Card1, p3Card2},
-                {p4Card1, p4Card2}, {p5Card1, p5Card2}, {p6Card1, p6Card2}
-        };
-        return allCards[playerIndex][cardIndex - 1];
-    }
-
-    private ImageView getCommunityCardImageView(String cardName) {
-        ImageView[] tableCards = {flopCard1, flopCard2, flopCard3, turnCard, riverCard};
-        for (int i = 0; i < communityCards.size(); i++) {
-            if (communityCards.get(i).equals(cardName)) return tableCards[i];
-        }
-        return null;
-    }
-
-    @FXML
-    public void handleFold(ActionEvent event) {
-        player1Status.setText("Fold");
-        actionPanel.setVisible(false);
-        inGame[0] = false;
-        nextTurn();
-    }
-
-    @FXML
-    public void handleCheck(ActionEvent event) {
-        player1Status.setText("Check");
-        actionPanel.setVisible(false);
-        nextTurn();
-    }
-
-    @FXML
-    public void handleRaise(ActionEvent event) {
-        player1Status.setText("Raise");
-        actionPanel.setVisible(false);
-        nextTurn();
-    }
-
     private void playRobotTurn() {
-        Label status = getStatusLabel(currentPlayerTurn);
-        if (Math.random() < 0.1) {
-            status.setText("Fold");
+        double rand = Math.random();
+        if (rand < 0.1) {
+            setStatus(currentPlayerTurn, "Fold", "#e84118");
             inGame[currentPlayerTurn] = false;
+        } else if (rand < 0.8) {
+            int callAmount = currentHighestBet - playerBets[currentPlayerTurn];
+            if (callAmount > 0) {
+                placeBet(currentPlayerTurn, callAmount);
+                setStatus(currentPlayerTurn, "Call $" + callAmount, "#ffffff");
+            } else {
+                setStatus(currentPlayerTurn, "Check", "#ffffff");
+            }
         } else {
-            status.setText("Check");
+            currentHighestBet += 50;
+            int amountToPay = currentHighestBet - playerBets[currentPlayerTurn];
+            placeBet(currentPlayerTurn, amountToPay);
+            setStatus(currentPlayerTurn, "Raise to $" + currentHighestBet, "#4cd137");
         }
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(e -> nextTurn());
@@ -450,9 +627,8 @@ public class PokerController {
             if (settingsFile.exists()) {
                 List<String> lines = Files.readAllLines(settingsFile.toPath());
                 for (String line : lines) {
-                    if (line.startsWith("numberOfPlayers:")) {
-                        numberOfPlayers = Integer.parseInt(line.split(":")[1]);
-                    }
+                    if (line.startsWith("numberOfPlayers:")) numberOfPlayers = Integer.parseInt(line.split(":")[1]);
+                    if (line.startsWith("startingMoney:")) startingMoney = Integer.parseInt(line.split(":")[1]);
                 }
             }
         } catch (Exception e) {}
@@ -477,9 +653,25 @@ public class PokerController {
         Collections.shuffle(deck);
     }
 
+    private ImageView getCardImageView(int playerIndex, int cardIndex) {
+        ImageView[][] allCards = { {p1Card1, p1Card2}, {p2Card1, p2Card2}, {p3Card1, p3Card2}, {p4Card1, p4Card2}, {p5Card1, p5Card2}, {p6Card1, p6Card2} };
+        return allCards[playerIndex][cardIndex - 1];
+    }
+
+    private ImageView getCommunityCardImageView(String cardName) {
+        ImageView[] tableCards = {flopCard1, flopCard2, flopCard3, turnCard, riverCard};
+        for (int i = 0; i < communityCards.size(); i++) {
+            if (communityCards.get(i).equals(cardName)) return tableCards[i];
+        }
+        return null;
+    }
+
     @FXML
     public void showCombinations(ActionEvent event) {
-        if (combinationsOverlay != null) combinationsOverlay.setVisible(true);
+        if (combinationsOverlay != null) {
+            combinationsOverlay.toFront(); // Vynutí zobrazení panelu nad všemi ostatními prvky
+            combinationsOverlay.setVisible(true);
+        }
     }
 
     @FXML
