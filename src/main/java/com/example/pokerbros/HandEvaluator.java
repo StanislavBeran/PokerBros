@@ -10,7 +10,7 @@ public class HandEvaluator {
         public int score;
         public String handName;
         public List<Integer> tieBreakers;
-        public List<String> bestCards; // Nově přidáno: přesných 5 karet tvořících kombinaci
+        public List<String> bestCards;
 
         public Result(int playerId, int score, String handName, List<Integer> tieBreakers, List<String> bestCards) {
             this.playerId = playerId;
@@ -62,7 +62,6 @@ public class HandEvaluator {
         Map<String, List<Card>> bySuit = allCards.stream().collect(Collectors.groupingBy(c -> c.suit));
         Map<Integer, List<Card>> byRank = allCards.stream().collect(Collectors.groupingBy(c -> c.rank));
 
-        // 1. Royal / Straight Flush / Flush
         for (List<Card> suitCards : bySuit.values()) {
             if (suitCards.size() >= 5) {
                 suitCards.sort((a, b) -> Integer.compare(b.rank, a.rank));

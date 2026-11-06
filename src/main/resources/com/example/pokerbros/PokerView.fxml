@@ -94,7 +94,6 @@
             </children>
         </VBox>
 
-        <!-- Hlavní ovládací tlačítka -->
         <HBox fx:id="actionPanel" alignment="CENTER" layoutX="490.0" layoutY="680.0" prefHeight="50.0" prefWidth="300.0" spacing="15.0" visible="false">
             <children>
                 <Button mnemonicParsing="false" onAction="#handleFold" prefWidth="90.0" style="-fx-background-color: linear-gradient(to bottom, #ff7675, #c23616); -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 12; -fx-border-color: #fab1a0; -fx-border-radius: 11; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 4, 0, 0, 2);" text="FOLD" />

@@ -145,12 +145,11 @@ public class PokerController {
         dealCards();
     }
 
-    // --- ANIMACE PANELU RAISE ZPRAVA ---
     private void showRaisePanel() {
-        raisePanel.setTranslateX(400); // Nastartuje posunutý vpravo mimo obrazovku
+        raisePanel.setTranslateX(400);
         raisePanel.setVisible(true);
         TranslateTransition tt = new TranslateTransition(Duration.millis(250), raisePanel);
-        tt.setToX(0); // Plynule dojede na svou X=800 pozici
+        tt.setToX(0);
         tt.play();
         customRaiseAmount = 0;
         updateRaiseUI();
@@ -159,7 +158,7 @@ public class PokerController {
     private void hideRaisePanel() {
         if (!raisePanel.isVisible()) return;
         TranslateTransition tt = new TranslateTransition(Duration.millis(250), raisePanel);
-        tt.setToX(400); // Odjede zpět vpravo
+        tt.setToX(400);
         tt.setOnFinished(e -> raisePanel.setVisible(false));
         tt.play();
     }
@@ -177,7 +176,7 @@ public class PokerController {
 
     private void updateRaiseUI() {
         customRaiseLabel.setText("$" + customRaiseAmount);
-        customRaiseLabel.setTextFill(javafx.scene.paint.Color.web("#fbc531")); // Reset barvy zpět na žlutou, pokud byla varovně červená
+        customRaiseLabel.setTextFill(javafx.scene.paint.Color.web("#fbc531"));
 
         ImageView[] rTokens = {rToken1, rToken5, rToken10, rToken25, rToken50, rToken100, rToken200, rToken500, rToken1000};
         int[] rVals = {1, 5, 10, 25, 50, 100, 200, 500, 1000};
@@ -224,7 +223,7 @@ public class PokerController {
     @FXML
     public void handleRaise(ActionEvent event) {
         if (raisePanel.isVisible() && raisePanel.getTranslateX() == 0) {
-            hideRaisePanel(); // Když už je zobrazený a docestoval, tak ho schová
+            hideRaisePanel();
         } else if (!raisePanel.isVisible()) {
             showRaisePanel();
         }
@@ -669,7 +668,7 @@ public class PokerController {
     @FXML
     public void showCombinations(ActionEvent event) {
         if (combinationsOverlay != null) {
-            combinationsOverlay.toFront(); // Vynutí zobrazení panelu nad všemi ostatními prvky
+            combinationsOverlay.toFront();
             combinationsOverlay.setVisible(true);
         }
     }
