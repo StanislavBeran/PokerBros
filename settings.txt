@@ -1,2 +1,2 @@
-numberOfPlayers:3
-startingMoney:1000
+numberOfPlayers:6
+startingMoney:5000
